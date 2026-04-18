@@ -1,6 +1,7 @@
+from sqlalchemy import Column, Integer, String, Float, DateTime
+from datetime import datetime
 from app.db.database import Base
-from datetime import datetime, timezone
-from sqlalchemy import Column, Integer, Float, String, DateTime
+
 
 class DeviceData(Base):
   __tablename__ = "device_data"
@@ -12,5 +13,4 @@ class DeviceData(Base):
   y = Column(Float)
   z = Column(Float)
 
-  timestamp = Column(DateTime(timezone=True), default=lambda:
-                     datetime.now(timezone.utc))
+  created_at = Column(DateTime, default=datetime.utcnow)
