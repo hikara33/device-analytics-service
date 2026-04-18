@@ -1,12 +1,57 @@
-version: "3.8"
-
 services:
   db:
-    image: postgres:15
-    container_name: device_db
+    image: postgres:16-alpine
+    container_name: device_analytics_db
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 123123
+      POSTGRES_PASSWORD: postgres
       POSTGRES_DB: analytics
     ports:
-      - "5432:5432"
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d analytics"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: device_analytics_redis
+    ports:
+      - "6379:6379"
+
+  web:
+    build: .
+    container_name: device_analytics_api
+    environment:
+      DATABASE_URL: postgresql+psycopg2://postgres:postgres@db:5432/analytics
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  worker:
+    build: .
+    container_name: device_analytics_worker
+    command: celery -A app.celery_app worker --loglevel=info
+    environment:
+      DATABASE_URL: postgresql+psycopg2://postgres:postgres@db:5432/analytics
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+volumes:
+  pgdata:
