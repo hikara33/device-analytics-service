@@ -15,7 +15,7 @@ REST API на **FastAPI** для приёма показаний `{x, y, z}` с 
 | Очередь задач | Celery, Redis |
 | Нагрузочное тестирование | Locust |
 
-## Быстрый старт (Docker)
+## Быстрый старт
 
 ```bash
 git clone https://github.com/hikara33/device-analytics-service.git
@@ -27,12 +27,10 @@ docker compose up --build -d
 - OpenAPI: `http://localhost:8000/docs`
 - Health: `http://localhost:8000/health`
 
-Сервисы: `web` (API), `worker` (Celery), `db` (PostgreSQL), `redis`. На хосте PostgreSQL проброшен на порт **5433** (если занят 5432).
-
 ## Локальная разработка
 
 1. PostgreSQL и Redis доступны локально; БД `analytics` создана.
-2. `cp .env.example .env`, при необходимости поправить `DATABASE_URL` (для контейнерной БД с хоста — порт `5433`).
+2. `cp .env.example .env`
 3. Виртуальное окружение и зависимости:
 
 ```bash
@@ -52,8 +50,6 @@ uvicorn app.main:app --reload
 ```bash
 celery -A app.celery_app worker --loglevel=info
 ```
-
-Запуск из корня репозитория. Если порт `8000` занят контейнером `device_analytics_api`, остановите его: `docker compose stop web`, либо используйте `--port 8001`.
 
 ## Переменные окружения
 
